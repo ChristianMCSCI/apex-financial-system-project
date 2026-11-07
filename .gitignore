@@ -1,9 +1,12 @@
-# Visual Studio
-.vs/
-*.user
-
 # Python
 __pycache__/
 *.pyc
 venv/
 .env
+
+# Visual Studio
+.vs/
+*.user
+
+# Workbench binaries / OS junk
+*.mwb.bak

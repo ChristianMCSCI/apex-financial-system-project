@@ -1,5 +1,22 @@
 from operations import add_category, add_transaction, view_categories, view_all_transactions, update_transaction, delete_transaction, view_total_balance, view_spending_by_category
 
+def get_valid_float(prompt_text):
+    """Safely gets a float input from the user without crashing."""
+    while True:
+        user_input = input(prompt_text)
+        try:
+            return float(user_input)
+        except ValueError:
+            print("Invalid input: Please enter a valid numerical amount (e.g., 50.00).")
+
+def get_valid_int(prompt_text):
+    """Safely gets an integer input from the user without crashing."""
+    while True:
+        user_input = input(prompt_text)
+        try:
+            return int(user_input)
+        except ValueError:
+            print("Invalid Input: please enter a valid whole number.")
 
 def main_menu():
     """Displays the main menu and handles user routing."""
@@ -37,20 +54,20 @@ def main_menu():
         elif choice == '4':
             print("\n-- Add Transaction --")
             transaction_date = input("Enter date (YYYY-MM-DD): ")
-            transaction_amount = float(input("Enter amount (e.g., 50.00): "))
-            category_id = int(input("Enter the Category ID: "))
+            transaction_amount = get_valid_float("Enter amount (e.g., 50.00): ")
+            category_id = get_valid_int("Enter the Category ID: ")
             transaction_description = input("Enter a brief description: ")
             add_transaction(transaction_date, transaction_amount, category_id, transaction_description)
         
         elif choice == '5':
             print("\n-- Update Transaction --")
-            transaction_id = int(input("Enter the ID of the transaction to update: "))
-            new_amount = float(input("Enter the new amount: "))
+            transaction_id = get_valid_int("Enter the ID of the transaction to update: ")
+            new_amount = get_valid_float("Enter the new amount: ")
             new_description = input("Enter the new description: ")
             update_transaction(transaction_id, new_amount, new_description)            
         elif choice == '6':
             print("\n-- Delete Transaction --")
-            transaction_id = int(input("Enter the ID of the transaction to delete: "))
+            transaction_id = get_valid_int("Enter the ID of the transaction to delete: ")
             delete_transaction(transaction_id)
         
         elif choice == '7':
@@ -66,7 +83,7 @@ def main_menu():
             break
             
         else:
-            print("Invalid selection. Please enter a number between 1 and 7.")
+            print("Invalid selection. Please enter a number between 1 and 9.")
 
 if __name__ == "__main__":
     main_menu()

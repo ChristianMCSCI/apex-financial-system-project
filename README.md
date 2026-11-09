@@ -18,7 +18,7 @@ A robust, command-line interface (CLI) financial ledger application built with P
 ## Installation & Setup
 
 ### 1. Clone the repository
-`git clone [https://github.com/your-username/your-repo-name.git](https://github.com/ChristianMCSCI/apex-financial-system-project)`
+`git clone (https://github.com/ChristianMCSCI/apex-financial-system-project)`
 `cd your-repo-name`
 
 ### 2. Install dependencies

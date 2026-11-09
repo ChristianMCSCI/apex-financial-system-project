@@ -56,3 +56,61 @@ def add_transaction(transaction_date, amount, category_id, description):
     finally:
         connection.close()
             
+            
+def view_categories():
+    """Retrieves and prints all categories from the database."""
+    connection = get_database_connection()
+    if connection is None:
+        print("Cannot proceed: Database connection failed.")
+        return False
+        
+    try:
+        with connection.cursor() as cursor:
+
+            sql = "SELECT category_id, category_name, category_type FROM categories"
+            
+            cursor.execute(sql)
+            
+            categories = cursor.fetchall()
+            
+            for category in categories:
+                print(f"ID: {category[0]}, Name: {category[1]}, Type: {category[2]}")
+            
+            return True
+
+    except pymysql.MySQLError as e:
+        print(f"Database Error while retrieving categories: {e}")
+        return False
+        
+    finally:
+        connection.close()
+        
+def view_all_transactions():
+    """Retrieves and prints all transactions, joined with their category names."""
+    connection = get_database_connection()
+    if connection is None:
+        print("Cannot proceed: Database connection failed.")
+        return False
+        
+    try:
+        with connection.cursor() as cursor:
+            # TODO 5: Write the SQL SELECT query. 
+            # Requirement: You must use an INNER JOIN to connect the 'transactions' 
+            # table and the 'categories' table so you can display the category_name.
+            sql = "SELECT transaction_date, transaction_id, transaction_description, transaction_amount, category_name FROM transactions INNER JOIN categories ON transactions.category_id = category_id"
+            
+            # TODO 6: Execute the query
+            cursor.execute(sql)
+            # TODO 7: Fetch all results
+            transactions = cursor.fetchall()
+            
+            # TODO 8: Loop through 'transactions' and print them clearly
+            for transaction in transactions:
+                print(f"Date: {transaction[0]}, ID: {transaction[1]}, Description: {transaction[2]}, Amount: {transaction[3]}, Category: {transaction[4]} ")
+
+    except pymysql.MySQLError as e:
+        print(f"Database Error while retrieving transactions: {e}")
+        return False
+        
+    finally:
+        connection.close()

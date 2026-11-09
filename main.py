@@ -1,4 +1,4 @@
-from operations import add_category, add_transaction, view_categories, view_all_transactions
+from operations import add_category, add_transaction, view_categories, view_all_transactions, update_transaction, delete_transaction
 
 def main_menu():
     """Displays the main menu and handles user routing."""

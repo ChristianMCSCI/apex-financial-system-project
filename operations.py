@@ -114,3 +114,52 @@ def view_all_transactions():
         
     finally:
         connection.close()
+        
+def update_transaction(transaction_id, new_amount, new_description):
+    """Updates the amount and description of an existing transaction."""
+    connection = get_database_connection()
+    if connection is None:
+        print("Cannot proceed: Database connection failed.")
+        return False
+        
+    try:
+        with connection.cursor() as cursor:
+            sql = "UPDATE transactions SET transaction_amount = %s, transaction_description = %s WHERE transaction_id = %s"
+            
+            cursor.execute(sql,( new_amount, new_description, transaction_id) )
+            
+        connection.commit()
+        print(f"Success: Transaction #{transaction_id} updated.")
+        return True
+
+    except pymysql.MySQLError as e:
+        print(f"Database Error while updating transaction: {e}")
+        return False
+        
+    finally:
+        connection.close()
+
+
+def delete_transaction(transaction_id):
+    """Permanently removes a transaction from the database."""
+    connection = get_database_connection()
+    if connection is None:
+        print("Cannot proceed: Database connection failed.")
+        return False
+        
+    try:
+        with connection.cursor() as cursor:
+            sql = "DELETE FROM transactions WHERE transaction_id = %s"
+    
+            cursor.execute(sql, (transaction_id,))
+
+        connection.commit()
+        print(f"Success: Transaction #{transaction_id} deleted.")
+        return True
+
+    except pymysql.MySQLError as e:
+        print(f"Database Error while deleting transaction: {e}")
+        return False
+        
+    finally:
+        connection.close()

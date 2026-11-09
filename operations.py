@@ -163,3 +163,64 @@ def delete_transaction(transaction_id):
         
     finally:
         connection.close()
+        
+def view_total_balance():
+    """Calculates and displays the net balance (Income - Expenses)."""
+    connection = get_database_connection()
+    if connection is None:
+        return False
+        
+    try:
+        with connection.cursor() as cursor:
+            sql = "SELECT SUM(CASE WHEN category_type = 'Income' THEN transaction_amount WHEN category_type = 'Expense' THEN transaction_amount * -1 ELSE 0 END) AS net_balance FROM transactions JOIN categories ON transactions.category_id = categories.category_id"
+            
+            # TODO 2: Execute, fetch the result, and print the total balance cleanly.
+            cursor.execute(sql)
+            result = cursor.fetchone()
+            
+            balance = result[0]
+            
+            if balance is None:
+                balance = 0.0
+                
+            print(f"\nTotal net balance: ${balance:.2f}")
+            return True
+        
+    except pymysql.MySQLError as e:
+        print(f"Database Error while calculating balance: {e}")
+        return False
+        
+    finally:
+        connection.close()
+
+
+def view_spending_by_category():
+    """Displays total expenses grouped by category."""
+    connection = get_database_connection()
+    if connection is None:
+        return False
+        
+    try:
+        with connection.cursor() as cursor:
+            sql = "SELECT category_name, SUM(transaction_id) FROM transactions JOIN categories ON transactions.category_id = categories.category_id WHERE category_type = 'Expense' GROUP BY categories.category_name"
+            
+            cursor.execute(sql)
+            results = cursor.fetchall()
+            
+            print("\n-- Spending by Category --")
+            if not results:
+                print("No expenses recorded yet.")
+            else:
+                for row in results:
+                    category_name = row[0]
+                    total_spent = row[1]
+                    print(f"{category_name}: ${total_spent:.2f}")
+            
+            return True
+            
+    except pymysql.MySQLError as e:
+        print(f"Database Error while calculating category spending: {e}")
+        return False
+        
+    finally:
+        connection.close()

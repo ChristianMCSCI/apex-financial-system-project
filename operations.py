@@ -1,0 +1,226 @@
+from apexdatabasesystem import get_database_connection
+import pymysql
+
+def add_category(category_name, category_type):
+    """Inserts a new category into the database securely."""
+    
+    connection = get_database_connection()
+    if connection is None:
+        print("Cannot proceed: Database connection failed.")
+        return False
+        
+    try:
+        with connection.cursor() as cursor:
+            # 2. Write the raw SQL using %s placeholders for the values
+            # Hint: INSERT INTO table_name (column1, column2) VALUES (%s, %s)
+            sql = "INSERT INTO categories (category_name, category_type) VALUES (%s, %s)"
+            
+            # 3. Execute the cursor, passing the sql and a tuple of the variables
+            cursor.execute(sql, (category_name, category_type))
+            
+        # 4. Commit the transaction so it saves to the disk!
+        connection.commit()
+        print(f"Success: Category '{category_name}' added to the ledger.")
+        return True
+
+    except pymysql.MySQLError as e:
+        print(f"Database Error while adding category: {e}")
+        return False
+        
+    finally:
+        # 5. Always close the connection to prevent memory leaks
+        connection.close()
+        
+        
+def add_transaction(transaction_date, amount, category_id, description):
+    
+    connection = get_database_connection()
+    if connection is None:
+        print("Cannot proceed: Database connection failed.")
+        return False
+    
+    try:
+        with connection.cursor() as cursor:
+            sql = "INSERT INTO transactions (transaction_date, transaction_description, transaction_amount, category_id) VALUES (%s, %s, %s, %s)"
+            
+            cursor.execute(sql, (transaction_date, description, amount, category_id))
+            
+        connection.commit()
+        print(f"Success: Transaction of ${amount} added to the ledger.")
+        return True
+
+    except pymysql.MySQLError as e:
+        print(f"Database Error while adding transaction: {e}")
+        return False
+
+    finally:
+        connection.close()
+            
+            
+def view_categories():
+    """Retrieves and prints all categories from the database."""
+    connection = get_database_connection()
+    if connection is None:
+        print("Cannot proceed: Database connection failed.")
+        return False
+        
+    try:
+        with connection.cursor() as cursor:
+
+            sql = "SELECT category_id, category_name, category_type FROM categories"
+            
+            cursor.execute(sql)
+            
+            categories = cursor.fetchall()
+            
+            for category in categories:
+                print(f"ID: {category[0]}, Name: {category[1]}, Type: {category[2]}")
+            
+            return True
+
+    except pymysql.MySQLError as e:
+        print(f"Database Error while retrieving categories: {e}")
+        return False
+        
+    finally:
+        connection.close()
+        
+def view_all_transactions():
+    """Retrieves and prints all transactions, joined with their category names."""
+    connection = get_database_connection()
+    if connection is None:
+        print("Cannot proceed: Database connection failed.")
+        return False
+        
+    try:
+        with connection.cursor() as cursor:
+            # TODO 5: Write the SQL SELECT query. 
+            # Requirement: You must use an INNER JOIN to connect the 'transactions' 
+            # table and the 'categories' table so you can display the category_name.
+            sql = "SELECT transaction_date, transaction_id, transaction_description, transaction_amount, category_name FROM transactions INNER JOIN categories ON transactions.category_id = category_id"
+            
+            # TODO 6: Execute the query
+            cursor.execute(sql)
+            # TODO 7: Fetch all results
+            transactions = cursor.fetchall()
+            
+            # TODO 8: Loop through 'transactions' and print them clearly
+            for transaction in transactions:
+                print(f"Date: {transaction[0]}, ID: {transaction[1]}, Description: {transaction[2]}, Amount: {transaction[3]}, Category: {transaction[4]} ")
+
+    except pymysql.MySQLError as e:
+        print(f"Database Error while retrieving transactions: {e}")
+        return False
+        
+    finally:
+        connection.close()
+        
+def update_transaction(transaction_id, new_amount, new_description):
+    """Updates the amount and description of an existing transaction."""
+    connection = get_database_connection()
+    if connection is None:
+        print("Cannot proceed: Database connection failed.")
+        return False
+        
+    try:
+        with connection.cursor() as cursor:
+            sql = "UPDATE transactions SET transaction_amount = %s, transaction_description = %s WHERE transaction_id = %s"
+            
+            cursor.execute(sql,( new_amount, new_description, transaction_id) )
+            
+        connection.commit()
+        print(f"Success: Transaction #{transaction_id} updated.")
+        return True
+
+    except pymysql.MySQLError as e:
+        print(f"Database Error while updating transaction: {e}")
+        return False
+        
+    finally:
+        connection.close()
+
+
+def delete_transaction(transaction_id):
+    """Permanently removes a transaction from the database."""
+    connection = get_database_connection()
+    if connection is None:
+        print("Cannot proceed: Database connection failed.")
+        return False
+        
+    try:
+        with connection.cursor() as cursor:
+            sql = "DELETE FROM transactions WHERE transaction_id = %s"
+    
+            cursor.execute(sql, (transaction_id,))
+
+        connection.commit()
+        print(f"Success: Transaction #{transaction_id} deleted.")
+        return True
+
+    except pymysql.MySQLError as e:
+        print(f"Database Error while deleting transaction: {e}")
+        return False
+        
+    finally:
+        connection.close()
+        
+def view_total_balance():
+    """Calculates and displays the net balance (Income - Expenses)."""
+    connection = get_database_connection()
+    if connection is None:
+        return False
+        
+    try:
+        with connection.cursor() as cursor:
+            sql = "SELECT SUM(CASE WHEN category_type = 'Income' THEN transaction_amount WHEN category_type = 'Expense' THEN transaction_amount * -1 ELSE 0 END) AS net_balance FROM transactions JOIN categories ON transactions.category_id = categories.category_id"
+            
+            # TODO 2: Execute, fetch the result, and print the total balance cleanly.
+            cursor.execute(sql)
+            result = cursor.fetchone()
+            
+            balance = result[0]
+            
+            if balance is None:
+                balance = 0.0
+                
+            print(f"\nTotal net balance: ${balance:.2f}")
+            return True
+        
+    except pymysql.MySQLError as e:
+        print(f"Database Error while calculating balance: {e}")
+        return False
+        
+    finally:
+        connection.close()
+
+
+def view_spending_by_category():
+    """Displays total expenses grouped by category."""
+    connection = get_database_connection()
+    if connection is None:
+        return False
+        
+    try:
+        with connection.cursor() as cursor:
+            sql = "SELECT category_name, SUM(transaction_id) FROM transactions JOIN categories ON transactions.category_id = categories.category_id WHERE category_type = 'Expense' GROUP BY categories.category_name"
+            
+            cursor.execute(sql)
+            results = cursor.fetchall()
+            
+            print("\n-- Spending by Category --")
+            if not results:
+                print("No expenses recorded yet.")
+            else:
+                for row in results:
+                    category_name = row[0]
+                    total_spent = row[1]
+                    print(f"{category_name}: ${total_spent:.2f}")
+            
+            return True
+            
+    except pymysql.MySQLError as e:
+        print(f"Database Error while calculating category spending: {e}")
+        return False
+        
+    finally:
+        connection.close()
